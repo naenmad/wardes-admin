@@ -39,6 +39,7 @@ import {
     Image as ImageIcon,
     CheckCircleOutline as ActiveIcon,
     HighlightOff as InactiveIcon,
+    ShoppingCart, // Added missing import
 } from '@mui/icons-material';
 import { collection, query, getDocs, doc, deleteDoc, addDoc, updateDoc, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config'; // Removed storage import
@@ -410,13 +411,21 @@ export default function PromotionsPage() {
     const renderSkeletons = () => {
         return Array(itemsPerPage).fill(0).map((_, index) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={`skeleton-${index}`} data-aos="fade-up">
-                <Card sx={{ height: '100%' }}>
-                    <Skeleton variant="rectangular" height={160} />
-                    <CardContent>
-                        <Skeleton variant="text" height={30} />
-                        <Skeleton variant="text" />
+                <Card sx={{
+                    height: 540, // Same as menu - tingkatkan skeleton height
+                    width: '100%',
+                    maxWidth: 300,
+                    minWidth: 280,
+                    margin: '0 auto'
+                }}>
+                    <Skeleton variant="rectangular" height={280} width="100%" /> {/* Perfect square skeleton */}
+                    <CardContent sx={{ height: 260, width: '100%' }}>
+                        <Skeleton variant="text" height={30} width="90%" sx={{ mb: 1 }} />
+                        <Skeleton variant="text" height={20} width="100%" />
+                        <Skeleton variant="text" width="85%" sx={{ mb: 1 }} />
                         <Skeleton variant="text" width="60%" sx={{ mb: 1 }} />
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box sx={{ flexGrow: 1 }} />
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
                             <Skeleton variant="text" width="30%" />
                             <Skeleton variant="circular" width={30} height={30} />
                         </Box>
@@ -469,97 +478,249 @@ export default function PromotionsPage() {
                 </Grid>
             </Paper>
 
+            {/* Update bagian Grid container untuk promotion cards */}
             <Grid container spacing={3}>
                 {loading ? (
                     renderSkeletons()
                 ) : currentItems.length > 0 ? (
                     currentItems.map((promo) => (
                         <Grid item xs={12} sm={6} md={4} lg={3} key={promo.id} data-aos="fade-up">
-                            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                <Box sx={{ position: 'relative', height: 160, bgcolor: 'grey.200' }}>
+                            <Card
+                                sx={{
+                                    height: 540, // Same as menu - tingkatkan total height card
+                                    width: '100%',
+                                    maxWidth: 300,
+                                    minWidth: 280,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    margin: '0 auto',
+                                    position: 'relative',
+                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: 3
+                                    }
+                                }}
+                            >
+                                {/* Perfect Square Image section - 280x280 */}
+                                <Box sx={{
+                                    position: 'relative',
+                                    height: 280, // Perfect square untuk card width 280px
+                                    width: '100%',
+                                    flexShrink: 0,
+                                    bgcolor: 'grey.100' // Background color untuk fallback
+                                }}>
                                     {promo.image ? (
                                         <CardMedia
                                             component="img"
-                                            height="160"
+                                            height="280"
                                             image={promo.image}
                                             alt={getLocalizedTitle(promo)}
-                                            sx={{ objectFit: 'cover' }}
+                                            sx={{
+                                                objectFit: 'cover',
+                                                objectPosition: 'center',
+                                                width: '100%',
+                                                height: '100%',
+                                                display: 'block' // Ensure proper display
+                                            }}
                                             onError={(e) => {
                                                 // Handle broken image URLs
                                                 (e.target as HTMLImageElement).style.display = 'none';
                                             }}
                                         />
                                     ) : (
-                                        <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Box sx={{
+                                            height: '100%',
+                                            width: '100%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            bgcolor: 'grey.200',
+                                            flexDirection: 'column'
+                                        }}>
                                             <ImageIcon sx={{ fontSize: 60, color: 'grey.400' }} />
+                                            <Typography color="text.secondary" variant="caption" sx={{ mt: 1 }}>
+                                                280x280
+                                            </Typography>
                                         </Box>
                                     )}
+
                                     <IconButton
                                         aria-label="actions"
                                         sx={{
-                                            position: 'absolute', top: 8, right: 8,
-                                            bgcolor: 'rgba(255,255,255,0.7)',
-                                            '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 8,
+                                            bgcolor: 'rgba(255,255,255,0.9)',
+                                            backdropFilter: 'blur(4px)',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(255,255,255,1)'
+                                            }
                                         }}
                                         onClick={(e) => handleMenuClick(e, promo)}
                                     >
                                         <MoreVertIcon />
                                     </IconButton>
+
                                     <Chip
                                         icon={promo.active ? <ActiveIcon /> : <InactiveIcon />}
                                         label={promo.active ? 'Aktif' : 'Nonaktif'}
                                         size="small"
                                         color={promo.active ? 'success' : 'default'}
-                                        sx={{ position: 'absolute', top: 8, left: 8, bgcolor: 'rgba(255,255,255,0.8)' }}
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            left: 8,
+                                            bgcolor: 'rgba(255,255,255,0.9)',
+                                            height: 24,
+                                            fontSize: '0.7rem'
+                                        }}
                                     />
                                 </Box>
-                                <CardContent sx={{ flexGrow: 1 }}>
-                                    <Typography variant="h6" fontWeight="medium" noWrap title={getLocalizedTitle(promo)}>
+
+                                {/* Content section - Fixed height */}
+                                <CardContent
+                                    sx={{
+                                        flexGrow: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        p: 2,
+                                        height: 260, // Same as menu - sesuaikan content height
+                                        width: '100%',
+                                        overflow: 'hidden'
+                                    }}
+                                >
+                                    {/* Title - Fixed height */}
+                                    <Typography
+                                        variant="h6"
+                                        fontWeight="medium"
+                                        sx={{
+                                            height: 32, // Fixed height untuk title
+                                            width: '100%',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 1,
+                                            WebkitBoxOrient: 'vertical',
+                                            mb: 1,
+                                            flexShrink: 0
+                                        }}
+                                        title={getLocalizedTitle(promo)}
+                                    >
                                         {getLocalizedTitle(promo)}
                                     </Typography>
+
+                                    {/* Description - Fixed height */}
                                     <Typography
                                         variant="body2"
                                         color="text.secondary"
-                                        title={getLocalizedDescription(promo)}
                                         sx={{
-                                            mb: 1, height: 40, overflow: 'hidden', textOverflow: 'ellipsis',
-                                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'
+                                            height: 60, // Fixed height untuk description (3 lines)
+                                            width: '100%',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 3,
+                                            WebkitBoxOrient: 'vertical',
+                                            mb: 2,
+                                            flexShrink: 0,
+                                            lineHeight: 1.4
                                         }}
+                                        title={getLocalizedDescription(promo)}
                                     >
                                         {getLocalizedDescription(promo)}
                                     </Typography>
-                                    {promo.actionLink && (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                            <LinkIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
-                                            <Typography variant="caption" color="text.secondary" noWrap>
-                                                {promo.actionLink}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                    <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-                                        <SortByAlphaIcon fontSize="small" sx={{ mr: 0.5 }} />
-                                        <Typography variant="caption">Urutan: {promo.order || 'N/A'}</Typography>
+
+                                    {/* Action Link - Fixed height */}
+                                    <Box sx={{ height: 24, width: '100%', mb: 1, flexShrink: 0 }}>
+                                        {promo.actionLink ? (
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <LinkIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary', flexShrink: 0 }} />
+                                                <Typography
+                                                    variant="caption"
+                                                    color="text.secondary"
+                                                    sx={{
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    {promo.actionLink}
+                                                </Typography>
+                                            </Box>
+                                        ) : (
+                                            <Box /> // Empty box to maintain spacing
+                                        )}
                                     </Box>
-                                    {promo.menuItemIds && promo.menuItemIds.length > 0 && (
-                                        <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
-                                            Item Terkait: {promo.menuItemIds.length}
+
+                                    {/* Order info - Fixed height */}
+                                    <Box sx={{
+                                        height: 20,
+                                        width: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        color: 'text.secondary',
+                                        mb: 1,
+                                        flexShrink: 0
+                                    }}>
+                                        <SortByAlphaIcon fontSize="small" sx={{ mr: 0.5, flexShrink: 0 }} />
+                                        <Typography variant="caption">
+                                            Urutan: {promo.order || 'N/A'}
                                         </Typography>
-                                    )}
+                                    </Box>
+
+                                    {/* Menu items info - Fixed height */}
+                                    <Box sx={{ height: 20, width: '100%', mb: 1, flexShrink: 0 }}>
+                                        {promo.menuItemIds && promo.menuItemIds.length > 0 && (
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                                sx={{
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                Item Terkait: {promo.menuItemIds.length}
+                                            </Typography>
+                                        )}
+                                    </Box>
+
+                                    {/* Spacer untuk push toggle ke bottom */}
+                                    <Box sx={{ flexGrow: 1, width: '100%' }} />
+
+                                    {/* Toggle switch - Fixed at bottom */}
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'flex-end',
+                                        height: 40, // Fixed height - sama seperti menu price section
+                                        width: '100%',
+                                        flexShrink: 0,
+                                        alignItems: 'center'
+                                    }}>
+                                        <FormControlLabel
+                                            control={
+                                                <Switch
+                                                    checked={promo.active}
+                                                    onChange={() => handleToggleActive(promo)}
+                                                    size="small"
+                                                />
+                                            }
+                                            labelPlacement="start"
+                                            label={
+                                                <Typography variant="caption">
+                                                    {promo.active ? "Aktif" : "Nonaktif"}
+                                                </Typography>
+                                            }
+                                            sx={{
+                                                mr: 0,
+                                                '& .MuiFormControlLabel-label': {
+                                                    fontSize: '0.75rem'
+                                                }
+                                            }}
+                                        />
+                                    </Box>
                                 </CardContent>
-                                <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={promo.active}
-                                                onChange={() => handleToggleActive(promo)}
-                                                size="small"
-                                            />
-                                        }
-                                        labelPlacement="start"
-                                        label={<Typography variant="caption">{promo.active ? "Aktif" : "Nonaktif"}</Typography>}
-                                        sx={{ mr: 0 }}
-                                    />
-                                </Box>
                             </Card>
                         </Grid>
                     ))
@@ -570,6 +731,20 @@ export default function PromotionsPage() {
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                 Coba ubah kriteria pencarian atau tambahkan promosi baru.
                             </Typography>
+                            <Button
+                                variant="outlined"
+                                onClick={() => setSearchTerm('')}
+                                sx={{ mr: 1 }}
+                            >
+                                Clear Filter
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={handleAddNew}
+                                sx={{ bgcolor: '#bc5a3c', '&:hover': { bgcolor: '#a04e34' } }}
+                            >
+                                Promosi Baru
+                            </Button>
                         </Paper>
                     </Grid>
                 )}
@@ -606,154 +781,454 @@ export default function PromotionsPage() {
                 </DialogActions>
             </Dialog>
 
-            {/* FORM DIALOG - BAGIAN YANG BERUBAH SIGNIFIKAN */}
-            <Dialog open={openFormDialog} onClose={() => setOpenFormDialog(false)} fullWidth maxWidth="md">
-                <DialogTitle>{formMode === 'add' ? 'Buat Promosi Baru' : 'Edit Promosi'}</DialogTitle>
-                <DialogContent>
-                    {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
-                    {formSuccess && <Alert severity="success" sx={{ mb: 2 }}>{formSuccess}</Alert>}
-                    <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                name="idTitle"
-                                label="Judul (Bahasa Indonesia)"
-                                fullWidth
-                                required
-                                value={formData.idTitle}
-                                onChange={handleFormInputChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                name="enTitle"
-                                label="Judul (Bahasa Inggris - Opsional)"
-                                fullWidth
-                                value={formData.enTitle}
-                                onChange={handleFormInputChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                name="idDescription"
-                                label="Deskripsi (Bahasa Indonesia)"
-                                fullWidth
-                                multiline
-                                rows={2}
-                                value={formData.idDescription}
-                                onChange={handleFormInputChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                name="enDescription"
-                                label="Deskripsi (Bahasa Inggris - Opsional)"
-                                fullWidth
-                                multiline
-                                rows={2}
-                                value={formData.enDescription}
-                                onChange={handleFormInputChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <TextField
-                                name="actionLink"
-                                label="Link Aksi (cth: /promo/detail-promo)"
-                                fullWidth
-                                value={formData.actionLink}
-                                onChange={handleFormInputChange}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                            <TextField
-                                name="order"
-                                label="Urutan Tampilan"
-                                type="number"
-                                fullWidth
-                                value={formData.order}
-                                onChange={handleFormInputChange}
-                                InputProps={{ inputProps: { min: 1 } }}
-                            />
-                        </Grid>
-
-                        {/* BAGIAN GAMBAR - DIUBAH DARI UPLOAD KE URL INPUT */}
-                        <Grid item xs={12}>
-                            <Typography variant="subtitle2" gutterBottom>
-                                Gambar Promosi
+            {/* ENHANCED FORM DIALOG - COMPLETELY REDESIGNED */}
+            <Dialog
+                open={openFormDialog}
+                onClose={() => setOpenFormDialog(false)}
+                fullWidth
+                maxWidth="lg"
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    bgcolor: '#bc5a3c',
+                    color: 'white',
+                    py: 3,
+                    borderRadius: '8px 8px 0 0'
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            {formMode === 'add' ? <AddIcon /> : <EditIcon />}
+                        </Box>
+                        <Box>
+                            <Typography variant="h6" fontWeight="bold">
+                                {formMode === 'add' ? 'Buat Promosi Baru' : 'Edit Promosi'}
                             </Typography>
-                            <TextField
-                                name="imageUrl"
-                                label="URL Gambar"
-                                fullWidth
-                                value={formData.imageUrl}
-                                onChange={handleFormInputChange}
-                                placeholder="https://example.com/image.jpg"
-                                helperText="Masukkan URL langsung ke gambar. Contoh: https://domain.com/gambar.jpg"
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <LinkIcon />
-                                        </InputAdornment>
-                                    ),
-                                }}
-                                error={formData.imageUrl ? !isValidImageUrl(formData.imageUrl) : false}
-                            />
+                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                {formMode === 'add'
+                                    ? 'Tambahkan promosi menarik untuk pelanggan Anda'
+                                    : 'Perbarui informasi promosi yang sudah ada'
+                                }
+                            </Typography>
+                        </Box>
+                    </Box>
+                </DialogTitle>
 
-                            {/* Preview gambar jika URL valid */}
-                            {formData.imageUrl && isValidImageUrl(formData.imageUrl) && (
-                                <Box sx={{ mt: 2 }}>
-                                    <Typography variant="caption" color="text.secondary" gutterBottom>
-                                        Preview:
-                                    </Typography>
-                                    <Box sx={{
-                                        border: '1px dashed grey',
-                                        borderRadius: 1,
-                                        p: 1,
-                                        maxWidth: 300,
-                                        height: 150,
-                                        overflow: 'hidden',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <img
-                                            src={formData.imageUrl}
-                                            alt="Preview"
-                                            style={{
-                                                maxWidth: '100%',
-                                                maxHeight: '100%',
-                                                objectFit: 'contain'
+                <DialogContent sx={{ p: 0 }}>
+                    {/* Alert Messages */}
+                    {(formError || formSuccess) && (
+                        <Box sx={{ p: 3, pb: 0 }}>
+                            {formError && (
+                                <Alert
+                                    severity="error"
+                                    sx={{ mb: 2, borderRadius: 2 }}
+                                    onClose={() => setFormError('')}
+                                >
+                                    {formError}
+                                </Alert>
+                            )}
+                            {formSuccess && (
+                                <Alert
+                                    severity="success"
+                                    sx={{ mb: 2, borderRadius: 2 }}
+                                    onClose={() => setFormSuccess('')}
+                                >
+                                    {formSuccess}
+                                </Alert>
+                            )}
+                        </Box>
+                    )}
+
+                    {/* Form Content with Sections */}
+                    <Box sx={{ p: 3 }}>
+                        {/* Section 1: Basic Information */}
+                        <Paper sx={{ p: 3, mb: 3, bgcolor: '#fafafa', border: '1px solid #e0e0e0' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Box sx={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    bgcolor: '#bc5a3c',
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    mr: 2
+                                }}>
+                                    1
+                                </Box>
+                                <Typography variant="h6" fontWeight="medium">
+                                    Informasi Dasar
+                                </Typography>
+                            </Box>
+
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        name="idTitle"
+                                        label="Judul Promosi"
+                                        fullWidth
+                                        required
+                                        value={formData.idTitle}
+                                        onChange={handleFormInputChange}
+                                        variant="outlined"
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                            },
+                                            '& .MuiInputLabel-root.Mui-focused': {
+                                                color: '#bc5a3c',
+                                            },
+                                        }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Typography sx={{ color: '#bc5a3c', fontWeight: 'bold', fontSize: '14px' }}>
+                                                        ID
+                                                    </Typography>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        name="enTitle"
+                                        label="Judul (English)"
+                                        fullWidth
+                                        value={formData.enTitle}
+                                        onChange={handleFormInputChange}
+                                        variant="outlined"
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                            },
+                                            '& .MuiInputLabel-root.Mui-focused': {
+                                                color: '#bc5a3c',
+                                            },
+                                        }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Typography sx={{ color: '#bc5a3c', fontWeight: 'bold', fontSize: '14px' }}>
+                                                        EN
+                                                    </Typography>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        helperText="Opsional - akan menggunakan judul ID jika kosong"
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="idDescription"
+                                        label="Deskripsi Promosi"
+                                        fullWidth
+                                        multiline
+                                        rows={3}
+                                        value={formData.idDescription}
+                                        onChange={handleFormInputChange}
+                                        variant="outlined"
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                            },
+                                            '& .MuiInputLabel-root.Mui-focused': {
+                                                color: '#bc5a3c',
+                                            },
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="enDescription"
+                                        label="Deskripsi (English)"
+                                        fullWidth
+                                        multiline
+                                        rows={2}
+                                        value={formData.enDescription}
+                                        onChange={handleFormInputChange}
+                                        variant="outlined"
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                            },
+                                            '& .MuiInputLabel-root.Mui-focused': {
+                                                color: '#bc5a3c',
+                                            },
+                                        }}
+                                        helperText="Opsional - akan menggunakan deskripsi ID jika kosong"
+                                    />
+                                </Grid>
+                            </Grid>
+                        </Paper>
+
+                        {/* Section 2: Image and Settings */}
+                        <Paper sx={{ p: 3, mb: 3, bgcolor: '#fafafa', border: '1px solid #e0e0e0' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Box sx={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    bgcolor: '#bc5a3c',
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    mr: 2
+                                }}>
+                                    2
+                                </Box>
+                                <Typography variant="h6" fontWeight="medium">
+                                    Gambar & Pengaturan
+                                </Typography>
+                            </Box>
+
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} md={8}>
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'medium' }}>
+                                            URL Gambar Promosi
+                                        </Typography>
+                                        <TextField
+                                            name="imageUrl"
+                                            label="Masukkan URL Gambar"
+                                            fullWidth
+                                            value={formData.imageUrl}
+                                            onChange={handleFormInputChange}
+                                            placeholder="https://example.com/promo-image.jpg"
+                                            variant="outlined"
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&:hover fieldset': {
+                                                        borderColor: '#bc5a3c',
+                                                    },
+                                                    '&.Mui-focused fieldset': {
+                                                        borderColor: '#bc5a3c',
+                                                    },
+                                                },
+                                                '& .MuiInputLabel-root.Mui-focused': {
+                                                    color: '#bc5a3c',
+                                                },
                                             }}
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = 'none';
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <LinkIcon sx={{ color: '#bc5a3c' }} />
+                                                    </InputAdornment>
+                                                ),
                                             }}
+                                            error={formData.imageUrl ? !isValidImageUrl(formData.imageUrl) : false}
+                                            helperText={
+                                                formData.imageUrl && !isValidImageUrl(formData.imageUrl)
+                                                    ? "URL gambar tidak valid"
+                                                    : "Pastikan URL mengarah langsung ke file gambar"
+                                            }
                                         />
                                     </Box>
-                                </Box>
-                            )}
 
-                            {/* Contoh URL yang bisa digunakan */}
-                            <Box sx={{ mt: 1 }}>
-                                <Typography variant="caption" color="text.secondary">
-                                    Tips: Anda bisa menggunakan layanan hosting gambar gratis seperti:
+                                    {/* Enhanced Image Preview */}
+                                    {formData.imageUrl && isValidImageUrl(formData.imageUrl) && (
+                                        <Box sx={{
+                                            border: '2px dashed #bc5a3c',
+                                            borderRadius: 2,
+                                            p: 2,
+                                            bgcolor: 'rgba(188, 90, 60, 0.05)'
+                                        }}>
+                                            <Typography variant="caption" color="#bc5a3c" fontWeight="medium" gutterBottom display="block">
+                                                ✓ Preview Gambar
+                                            </Typography>
+                                            <Box sx={{
+                                                width: '100%',
+                                                height: 200,
+                                                borderRadius: 1,
+                                                overflow: 'hidden',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                bgcolor: 'white',
+                                                border: '1px solid #e0e0e0'
+                                            }}>
+                                                <img
+                                                    src={formData.imageUrl}
+                                                    alt="Preview"
+                                                    style={{
+                                                        maxWidth: '100%',
+                                                        maxHeight: '100%',
+                                                        objectFit: 'contain'
+                                                    }}
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+                                    )}
+
+                                    {/* Image URL Tips */}
+                                    <Paper sx={{ p: 2, mt: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0' }}>
+                                        <Typography variant="caption" color="text.secondary" fontWeight="medium" gutterBottom display="block">
+                                            💡 Tips Hosting Gambar Gratis:
+                                        </Typography>
+                                        <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                                            <Typography component="li" variant="caption" color="text.secondary">
+                                                <strong>Imgur.com</strong> - Upload & copy direct link
+                                            </Typography>
+                                            <Typography component="li" variant="caption" color="text.secondary">
+                                                <strong>Firebase Storage</strong> - Professional hosting
+                                            </Typography>
+                                            <Typography component="li" variant="caption" color="text.secondary">
+                                                <strong>Cloudinary.com</strong> - Advanced image management
+                                            </Typography>
+                                        </Box>
+                                    </Paper>
+                                </Grid>
+
+                                <Grid item xs={12} md={4}>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                        <TextField
+                                            name="actionLink"
+                                            label="Link Aksi"
+                                            fullWidth
+                                            value={formData.actionLink}
+                                            onChange={handleFormInputChange}
+                                            placeholder="/promo/detail-promo"
+                                            variant="outlined"
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&:hover fieldset': {
+                                                        borderColor: '#bc5a3c',
+                                                    },
+                                                    '&.Mui-focused fieldset': {
+                                                        borderColor: '#bc5a3c',
+                                                    },
+                                                },
+                                                '& .MuiInputLabel-root.Mui-focused': {
+                                                    color: '#bc5a3c',
+                                                },
+                                            }}
+                                            helperText="URL yang akan dibuka saat promosi diklik"
+                                        />
+
+                                        <TextField
+                                            name="order"
+                                            label="Urutan Tampilan"
+                                            type="number"
+                                            fullWidth
+                                            value={formData.order}
+                                            onChange={handleFormInputChange}
+                                            InputProps={{
+                                                inputProps: { min: 1 },
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <SortByAlphaIcon sx={{ color: '#bc5a3c' }} />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                            variant="outlined"
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    '&:hover fieldset': {
+                                                        borderColor: '#bc5a3c',
+                                                    },
+                                                    '&.Mui-focused fieldset': {
+                                                        borderColor: '#bc5a3c',
+                                                    },
+                                                },
+                                                '& .MuiInputLabel-root.Mui-focused': {
+                                                    color: '#bc5a3c',
+                                                },
+                                            }}
+                                            helperText="Nomor urut untuk mengurutkan promosi"
+                                        />
+
+                                        <Paper sx={{ p: 2, bgcolor: 'rgba(188, 90, 60, 0.05)', border: '1px solid rgba(188, 90, 60, 0.2)' }}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        name="active"
+                                                        checked={formData.active}
+                                                        onChange={handleFormInputChange}
+                                                        sx={{
+                                                            '& .MuiSwitch-switchBase.Mui-checked': {
+                                                                color: '#bc5a3c',
+                                                            },
+                                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                                                backgroundColor: '#bc5a3c',
+                                                            },
+                                                        }}
+                                                    />
+                                                }
+                                                label={
+                                                    <Box>
+                                                        <Typography variant="body2" fontWeight="medium">
+                                                            Status Promosi
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            {formData.active ? 'Promosi akan ditampilkan' : 'Promosi tidak akan ditampilkan'}
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                        </Paper>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        </Paper>
+
+                        {/* Section 3: Related Menu Items */}
+                        <Paper sx={{ p: 3, bgcolor: '#fafafa', border: '1px solid #e0e0e0' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Box sx={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    bgcolor: '#bc5a3c',
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    mr: 2
+                                }}>
+                                    3
+                                </Box>
+                                <Typography variant="h6" fontWeight="medium">
+                                    Item Menu Terkait
                                 </Typography>
-                                <Box component="ul" sx={{ mt: 0.5, pl: 2 }}>
-                                    <Typography component="li" variant="caption" color="text.secondary">
-                                        Imgur.com - Upload gambar dan copy direct link
-                                    </Typography>
-                                    <Typography component="li" variant="caption" color="text.secondary">
-                                        Firebase Storage - Gunakan URL dari Firebase Console
-                                    </Typography>
-                                    <Typography component="li" variant="caption" color="text.secondary">
-                                        Cloudinary.com - Service hosting gambar professional
-                                    </Typography>
-                                </Box>
                             </Box>
-                        </Grid>
 
-                        <Grid item xs={12}>
-                            <Typography variant="subtitle2" gutterBottom>
-                                Item Menu Terkait
-                            </Typography>
                             <Autocomplete
                                 multiple
                                 options={menuOptions}
@@ -766,9 +1241,31 @@ export default function PromotionsPage() {
                                     <TextField
                                         {...params}
                                         placeholder="Pilih item menu untuk promosi ini..."
-                                        helperText="Pilih satu atau lebih item menu yang termasuk dalam promosi ini"
+                                        variant="outlined"
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#bc5a3c',
+                                                },
+                                            },
+                                            '& .MuiInputLabel-root.Mui-focused': {
+                                                color: '#bc5a3c',
+                                            },
+                                        }}
+                                        helperText="Pilih satu atau lebih item menu yang termasuk dalam promosi ini (opsional)"
                                         InputProps={{
                                             ...params.InputProps,
+                                            startAdornment: (
+                                                <>
+                                                    <InputAdornment position="start">
+                                                        <ShoppingCart sx={{ color: '#bc5a3c' }} />
+                                                    </InputAdornment>
+                                                    {params.InputProps.startAdornment}
+                                                </>
+                                            ),
                                             endAdornment: (
                                                 <>
                                                     {menuLoading ? <CircularProgress color="inherit" size={20} /> : null}
@@ -780,27 +1277,50 @@ export default function PromotionsPage() {
                                 )}
                                 renderOption={(props, option) => (
                                     <Box component="li" {...props} key={option.id}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            {option.image && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', py: 1 }}>
+                                            {option.image ? (
                                                 <Box
                                                     component="img"
                                                     src={option.image}
                                                     sx={{
-                                                        width: 40,
-                                                        height: 40,
+                                                        width: 48,
+                                                        height: 48,
                                                         borderRadius: 1,
                                                         mr: 2,
-                                                        objectFit: 'cover'
+                                                        objectFit: 'cover',
+                                                        border: '1px solid #e0e0e0'
                                                     }}
                                                 />
+                                            ) : (
+                                                <Box sx={{
+                                                    width: 48,
+                                                    height: 48,
+                                                    borderRadius: 1,
+                                                    mr: 2,
+                                                    bgcolor: '#f5f5f5',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    border: '1px solid #e0e0e0'
+                                                }}>
+                                                    <ImageIcon sx={{ color: '#bdbdbd' }} />
+                                                </Box>
                                             )}
                                             <Box sx={{ flexGrow: 1 }}>
                                                 <Typography variant="body2" fontWeight="medium">
                                                     {option.name}
                                                 </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {option.category} • IDR {option.price.toLocaleString()}
-                                                </Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Chip
+                                                        label={option.category}
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{ fontSize: '0.7rem', height: 20 }}
+                                                    />
+                                                    <Typography variant="caption" color="#bc5a3c" fontWeight="medium">
+                                                        IDR {option.price.toLocaleString()}
+                                                    </Typography>
+                                                </Box>
                                             </Box>
                                         </Box>
                                     </Box>
@@ -808,9 +1328,16 @@ export default function PromotionsPage() {
                                 renderTags={(value, getTagProps) =>
                                     value.map((option, index) => (
                                         <Chip
-                                            variant="outlined"
-                                            label={`${option.name} (IDR ${option.price.toLocaleString()})`}
+                                            variant="filled"
+                                            label={`${option.name}`}
                                             size="small"
+                                            sx={{
+                                                bgcolor: 'rgba(188, 90, 60, 0.1)',
+                                                color: '#bc5a3c',
+                                                '& .MuiChip-deleteIcon': {
+                                                    color: '#bc5a3c'
+                                                }
+                                            }}
                                             {...getTagProps({ index })}
                                             key={option.id}
                                         />
@@ -818,31 +1345,78 @@ export default function PromotionsPage() {
                                 }
                                 sx={{ width: '100%' }}
                             />
-                        </Grid>
 
-                        <Grid item xs={12}>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        name="active"
-                                        checked={formData.active}
-                                        onChange={handleFormInputChange}
-                                    />
-                                }
-                                label="Aktifkan Promosi"
-                            />
-                        </Grid>
-                    </Grid>
+                            {/* Selected items preview */}
+                            {formData.selectedMenuItems.length > 0 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography variant="caption" color="text.secondary" gutterBottom display="block">
+                                        Item Terpilih ({formData.selectedMenuItems.length}):
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                        {formData.selectedMenuItems.map((item) => (
+                                            <Paper key={item.id} sx={{ p: 1, bgcolor: 'white', border: '1px solid #e0e0e0' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    {item.image && (
+                                                        <Box
+                                                            component="img"
+                                                            src={item.image}
+                                                            sx={{
+                                                                width: 24,
+                                                                height: 24,
+                                                                borderRadius: 0.5,
+                                                                objectFit: 'cover'
+                                                            }}
+                                                        />
+                                                    )}
+                                                    <Typography variant="caption" fontWeight="medium">
+                                                        {item.name}
+                                                    </Typography>
+                                                </Box>
+                                            </Paper>
+                                        ))}
+                                    </Box>
+                                </Box>
+                            )}
+                        </Paper>
+                    </Box>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenFormDialog(false)} disabled={formSubmitting}>
+
+                <DialogActions sx={{ p: 3, bgcolor: '#fafafa', borderTop: '1px solid #e0e0e0' }}>
+                    <Button
+                        onClick={() => setOpenFormDialog(false)}
+                        disabled={formSubmitting}
+                        variant="outlined"
+                        sx={{
+                            borderColor: '#bdbdbd',
+                            color: '#757575',
+                            '&:hover': {
+                                borderColor: '#757575',
+                                bgcolor: 'rgba(117, 117, 117, 0.04)'
+                            }
+                        }}
+                    >
                         Batal
                     </Button>
-                    <Button onClick={handleSubmitForm} variant="contained" color="primary" disabled={formSubmitting}>
+                    <Button
+                        onClick={handleSubmitForm}
+                        variant="contained"
+                        disabled={formSubmitting}
+                        sx={{
+                            bgcolor: '#bc5a3c',
+                            '&:hover': { bgcolor: '#a04e34' },
+                            minWidth: 120
+                        }}
+                    >
                         {formSubmitting ? (
-                            <CircularProgress size={24} color="inherit" />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <CircularProgress size={20} color="inherit" />
+                                <span>Menyimpan...</span>
+                            </Box>
                         ) : (
-                            formMode === 'add' ? 'Simpan Promosi' : 'Update Promosi'
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {formMode === 'add' ? <AddIcon /> : <EditIcon />}
+                                <span>{formMode === 'add' ? 'Simpan Promosi' : 'Update Promosi'}</span>
+                            </Box>
                         )}
                     </Button>
                 </DialogActions>

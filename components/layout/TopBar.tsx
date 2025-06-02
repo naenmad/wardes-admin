@@ -29,15 +29,13 @@ const Search = styled('div')(({ theme }) => ({
     '&:hover': {
         backgroundColor: alpha(theme.palette.common.white, 0.25),
     },
-    marginRight: theme.spacing(2),
-    marginLeft: 0,
     width: '100%',
-    [theme.breakpoints.up('sm')]: {
-        marginLeft: theme.spacing(3),
-        width: 'auto',
-    },
+    maxWidth: '400px', // Batas maksimal lebar
     border: '1px solid #e0e0e0',
     borderRadius: '50px',
+    [theme.breakpoints.down('sm')]: {
+        maxWidth: '250px',
+    },
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -53,14 +51,12 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
     color: 'inherit',
+    width: '100%',
     '& .MuiInputBase-input': {
         padding: theme.spacing(1, 1, 1, 0),
         paddingLeft: `calc(1em + ${theme.spacing(4)})`,
         transition: theme.transitions.create('width'),
         width: '100%',
-        [theme.breakpoints.up('md')]: {
-            width: '20ch',
-        },
     },
 }));
 
@@ -93,9 +89,12 @@ export default function TopBar({ handleDrawerToggle }: TopBarProps) {
                 background: 'white',
                 color: 'black',
                 borderBottom: '1px solid #f0f0f0',
+                // Pastikan AppBar tidak tumpang tindih dengan sidebar
+                zIndex: (theme) => theme.zIndex.drawer + 1,
             }}
         >
             <Toolbar>
+                {/* Mobile Menu Button - Kiri */}
                 <IconButton
                     color="inherit"
                     aria-label="open drawer"
@@ -105,28 +104,60 @@ export default function TopBar({ handleDrawerToggle }: TopBarProps) {
                 >
                     <MenuIcon />
                 </IconButton>
-                <Search>
-                    <SearchIconWrapper>
-                        <SearchIcon />
-                    </SearchIconWrapper>
-                    <StyledInputBase
-                        placeholder="Search…"
-                        inputProps={{ 'aria-label': 'search' }}
-                    />
-                </Search>
+
+                {/* Logo/Brand - Kiri (Desktop) */}
+                <Box sx={{ display: { xs: 'none', md: 'block' }, mr: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" color="#bc5a3c">
+                        Wardes Admin
+                    </Typography>
+                </Box>
+
+                {/* Spacer untuk mendorong search ke tengah */}
                 <Box sx={{ flexGrow: 1 }} />
+
+                {/* Search Bar - Tengah */}
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    flexGrow: 0,
+                    mx: 2
+                }}>
+                    <Search>
+                        <SearchIconWrapper>
+                            <SearchIcon />
+                        </SearchIconWrapper>
+                        <StyledInputBase
+                            placeholder="Search menu, orders, customers..."
+                            inputProps={{ 'aria-label': 'search' }}
+                        />
+                    </Search>
+                </Box>
+
+                {/* Spacer untuk menyeimbangkan */}
+                <Box sx={{ flexGrow: 1 }} />
+
+                {/* Right Side - Notifications & Profile */}
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton color="inherit">
+                    <IconButton
+                        color="inherit"
+                        sx={{
+                            mr: 1,
+                            '&:hover': {
+                                bgcolor: '#f5f5f5',
+                            }
+                        }}
+                    >
                         <Badge badgeContent={4} color="error">
                             <NotificationsIcon />
                         </Badge>
                     </IconButton>
+
                     <Box
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
                             cursor: 'pointer',
-                            ml: 2,
+                            ml: 1,
                             p: 1,
                             borderRadius: 50,
                             '&:hover': {
@@ -146,13 +177,18 @@ export default function TopBar({ handleDrawerToggle }: TopBarProps) {
                         </Avatar>
                         <Box sx={{ ml: 1, display: { xs: 'none', sm: 'block' } }}>
                             <Typography variant="body2" fontWeight="medium">
-                                {user?.email || 'Admin'}
+                                {user?.email?.split('@')[0] || 'Admin'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Administrator
                             </Typography>
                         </Box>
-                        <ArrowDropDown sx={{ color: 'text.secondary' }} />
+                        <ArrowDropDown sx={{ color: 'text.secondary', ml: 0.5 }} />
                     </Box>
                 </Box>
             </Toolbar>
+
+            {/* Profile Menu */}
             <Menu
                 anchorEl={anchorEl}
                 anchorOrigin={{
@@ -166,10 +202,42 @@ export default function TopBar({ handleDrawerToggle }: TopBarProps) {
                 }}
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
+                PaperProps={{
+                    sx: {
+                        mt: 0.5,
+                        minWidth: 180,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        borderRadius: 2,
+                    }
+                }}
             >
-                <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Settings</MenuItem>
-                <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
+                <MenuItem
+                    onClick={handleMenuClose}
+                    sx={{ py: 1.5 }}
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Avatar sx={{ width: 24, height: 24, mr: 1, bgcolor: '#bc5a3c' }}>
+                            {user?.email?.charAt(0).toUpperCase() || 'A'}
+                        </Avatar>
+                        Profile
+                    </Box>
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose} sx={{ py: 1.5 }}>
+                    Settings
+                </MenuItem>
+                <MenuItem
+                    onClick={handleSignOut}
+                    sx={{
+                        py: 1.5,
+                        color: 'error.main',
+                        '&:hover': {
+                            bgcolor: 'error.light',
+                            color: 'error.contrastText'
+                        }
+                    }}
+                >
+                    Sign Out
+                </MenuItem>
             </Menu>
         </AppBar>
     );

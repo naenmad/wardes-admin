@@ -49,7 +49,11 @@ import {
     LocalShipping as LocalShippingIcon,
     AttachMoney as AttachMoneyIcon,
     CreditCard as CreditCardIcon,
-    Circle as CircleIcon
+    Circle as CircleIcon,
+    AccountBalance as BankIcon,
+    AccountBalanceWallet as WalletIcon,
+    QrCode as QrIcon,
+    Money as CashIcon
 } from '@mui/icons-material';
 import { collection, query, getDocs, doc, updateDoc, orderBy as firebaseOrderBy, where, Timestamp } from 'firebase/firestore'; // Alias for orderBy
 import { db } from '@/lib/firebase/config';
@@ -74,6 +78,7 @@ interface OrderItem {
     subtotal: number;
     iceLevel?: string | null;
     spicyLevel?: string | null;
+    image?: string; // Tambahkan properti image
 }
 
 interface Customer {
@@ -181,6 +186,7 @@ export default function OrdersPage() {
                             subtotal: item.subtotal || 0,
                             iceLevel: item.iceLevel,
                             spicyLevel: item.spicyLevel,
+                            image: item.image, // Map image field
                         })),
                         customer: {
                             name: data.customerDetails?.name || 'Guest',
@@ -228,9 +234,9 @@ export default function OrdersPage() {
         fetchOrders();
     }, []);
 
-    // Apply filters (ensure 'orders' is a dependency if it's used to re-filter when orders change)
+    // Apply filters
     useEffect(() => {
-        let result = [...orders]; // Create a new array from orders
+        let result = [...orders];
 
         // Search filter
         if (searchTerm) {
@@ -252,9 +258,17 @@ export default function OrdersPage() {
             }
         }
 
-        // Payment filter
+        // Payment filter - Updated logic
         if (paymentFilter !== 'all') {
-            result = result.filter(order => order.paymentStatus === paymentFilter);
+            result = result.filter(order => {
+                // Normalize payment method for comparison
+                const orderPaymentMethod = order.paymentMethod.toLowerCase();
+                const filterPaymentMethod = paymentFilter.toLowerCase();
+
+                // Direct match or contains logic
+                return orderPaymentMethod === filterPaymentMethod ||
+                    orderPaymentMethod.includes(filterPaymentMethod);
+            });
         }
 
         // Date filter
@@ -448,6 +462,23 @@ export default function OrdersPage() {
         { value: 'cancelled', label: 'Cancelled', color: 'error' },
     ];
 
+    // Enhanced payment method display function
+    const getPaymentMethodIcon = (method: string) => {
+        const lowerMethod = method.toLowerCase();
+        if (lowerMethod.includes('tunai') || lowerMethod.includes('cash')) {
+            return <CashIcon fontSize="small" />;
+        } else if (lowerMethod.includes('bni') || lowerMethod.includes('bri') ||
+            lowerMethod.includes('mandiri') || lowerMethod.includes('cimb') ||
+            lowerMethod.includes('permata')) {
+            return <BankIcon fontSize="small" />;
+        } else if (lowerMethod.includes('gopay')) {
+            return <WalletIcon fontSize="small" />;
+        } else if (lowerMethod.includes('qris')) {
+            return <QrIcon fontSize="small" />;
+        }
+        return <CreditCardIcon fontSize="small" />;
+    };
+
     return (
         <>
             <Box sx={{ mb: 4 }}>
@@ -564,10 +595,14 @@ export default function OrdersPage() {
                                     startAdornment={<AttachMoneyIcon fontSize="small" sx={{ mr: 1, ml: -0.5 }} />}
                                 >
                                     <MenuItem value="all">All Methods</MenuItem>
-                                    <MenuItem value="cash">Cash</MenuItem>
-                                    <MenuItem value="credit">Credit Card</MenuItem>
+                                    <MenuItem value="tunai">Tunai</MenuItem>
+                                    <MenuItem value="bni">Bank BNI</MenuItem>
+                                    <MenuItem value="bri">Bank BRI</MenuItem>
+                                    <MenuItem value="mandiri">Bank Mandiri</MenuItem>
+                                    <MenuItem value="cimb_niaga">CIMB Niaga</MenuItem>
+                                    <MenuItem value="permata">PermataBank</MenuItem>
+                                    <MenuItem value="gopay">GoPay</MenuItem>
                                     <MenuItem value="qris">QRIS</MenuItem>
-                                    <MenuItem value="transfer">Bank Transfer</MenuItem>
                                 </Select>
                             </FormControl>
                         </Box>
@@ -614,9 +649,30 @@ export default function OrdersPage() {
                             currentItems.map((order) => (
                                 <TableRow key={order.id} hover>
                                     <TableCell>
-                                        <Typography variant="body2" fontWeight="medium">
-                                            {order.orderNumber}
-                                        </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            {order.items[0]?.image && (
+                                                <Box
+                                                    component="img"
+                                                    src={order.items[0].image}
+                                                    alt={order.items[0].name}
+                                                    sx={{
+                                                        width: 40,
+                                                        height: 40,
+                                                        borderRadius: 1,
+                                                        objectFit: 'cover',
+                                                        objectPosition: 'center'
+                                                    }}
+                                                />
+                                            )}
+                                            <Box>
+                                                <Typography variant="body2" fontWeight="medium">
+                                                    {order.orderNumber}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {order.items.length} item(s)
+                                                </Typography>
+                                            </Box>
+                                        </Box>
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="body2">{order.customer.name}</Typography>
@@ -656,12 +712,15 @@ export default function OrdersPage() {
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        <Chip
-                                            label={order.paymentMethod}
-                                            size="small"
-                                            variant="outlined"
-                                            sx={{ mb: 0.5 }}
-                                        />
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            {getPaymentMethodIcon(order.paymentMethod)}
+                                            <Chip
+                                                label={order.paymentMethod}
+                                                size="small"
+                                                variant="outlined"
+                                                sx={{ mb: 0.5 }}
+                                            />
+                                        </Box>
                                         <Typography variant="caption" display="block">
                                             {order.paymentStatus}
                                         </Typography>

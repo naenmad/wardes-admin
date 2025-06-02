@@ -17,6 +17,7 @@ import {
     MenuBook as MenuIcon,
     Discount as PromotionIcon,
     Settings as SettingsIcon,
+    Assessment as ReportIcon,
 } from '@mui/icons-material';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -34,6 +35,7 @@ const menuItems = [
     { text: 'Food Order', icon: <OrderIcon />, href: '/orders' },
     { text: 'Manage Menu and Stock', icon: <MenuIcon />, href: '/menu' },
     { text: 'Promotion', icon: <PromotionIcon />, href: '/promotions' },
+    { text: 'Reports', icon: <ReportIcon />, href: '/reports/revenue' },
 ];
 
 const otherItems = [

@@ -199,12 +199,15 @@ export default function RevenueChart() {
                 <Box>
                     <Typography
                         component="a"
-                        href="#"
+                        href="/reports/revenue"  // <-- UPDATE THIS LINE
                         sx={{
                             color: 'primary.main',
                             textDecoration: 'none',
                             fontSize: '0.875rem',
                             fontWeight: 'medium',
+                            '&:hover': {
+                                textDecoration: 'underline',
+                            },
                         }}
                     >
                         View Report
