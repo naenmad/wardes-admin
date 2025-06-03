@@ -36,12 +36,13 @@ import {
     Delete as DeleteIcon,
     Star as StarIcon,
     Link as LinkIcon,
-    Image as ImageIcon
+    // ImageIcon removed - unused
 } from '@mui/icons-material';
 import { collection, getDocs, doc, deleteDoc, updateDoc, addDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { useRouter } from 'next/navigation';
+// useRouter removed - unused
 import AOS from 'aos';
+import Image from 'next/image'; // Add this for image optimization
 
 // Updated MenuItem interface
 interface MenuItem {
@@ -88,7 +89,7 @@ export default function MenuPage() {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
-    const router = useRouter();
+    // router removed - unused
 
     // Form dialog states
     const [openFormDialog, setOpenFormDialog] = useState(false);
@@ -202,9 +203,12 @@ export default function MenuPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFormSelectChange = (e: any) => {
+    // Fix any type
+    const handleFormSelectChange = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name) {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleAddNew = () => {
@@ -270,7 +274,8 @@ export default function MenuPage() {
         }
 
         try {
-            const menuItemData: any = {
+            // Fix any type
+            const menuItemData: Record<string, unknown> = {
                 category: formData.category.toLowerCase(),
                 image: formData.image,
                 price: price,
@@ -487,10 +492,10 @@ export default function MenuPage() {
                                 {/* Perfect Square Image section - 280x280 */}
                                 <Box sx={{
                                     position: 'relative',
-                                    height: 280, // Perfect square untuk card width 280px
+                                    height: 280,
                                     width: '100%',
                                     flexShrink: 0,
-                                    bgcolor: 'grey.100' // Background color untuk fallback
+                                    bgcolor: 'grey.100'
                                 }}>
                                     {item.image ? (
                                         <CardMedia
@@ -503,7 +508,7 @@ export default function MenuPage() {
                                                 objectPosition: 'center',
                                                 width: '100%',
                                                 height: '100%',
-                                                display: 'block' // Ensure proper display
+                                                display: 'block'
                                             }}
                                         />
                                     ) : (
@@ -550,12 +555,12 @@ export default function MenuPage() {
                                         display: 'flex',
                                         flexDirection: 'column',
                                         p: 2,
-                                        height: 260, // Sesuaikan content height
+                                        height: 260,
                                         width: '100%',
                                         overflow: 'hidden'
                                     }}
                                 >
-                                    {/* Category chip - Fixed position */}
+                                    {/* Category chip */}
                                     <Box sx={{ mb: 1, height: 24, width: '100%', flexShrink: 0 }}>
                                         <Chip
                                             label={item.category}
@@ -571,7 +576,7 @@ export default function MenuPage() {
                                         />
                                     </Box>
 
-                                    {/* Title - Fixed height and width */}
+                                    {/* Title */}
                                     <Typography
                                         variant="h6"
                                         fontWeight="medium"
@@ -591,7 +596,7 @@ export default function MenuPage() {
                                         {getLocalizedName(item)}
                                     </Typography>
 
-                                    {/* Description - Fixed height and width */}
+                                    {/* Description */}
                                     <Typography
                                         variant="body2"
                                         color="text.secondary"
@@ -612,7 +617,7 @@ export default function MenuPage() {
                                         {getLocalizedDescription(item)}
                                     </Typography>
 
-                                    {/* Rating section - Fixed height and width */}
+                                    {/* Rating section */}
                                     <Box
                                         sx={{
                                             height: 24,
@@ -653,21 +658,21 @@ export default function MenuPage() {
                                                 )}
                                             </Box>
                                         ) : (
-                                            <Box sx={{ width: '100%' }} /> // Empty box to maintain spacing
+                                            <Box sx={{ width: '100%' }} />
                                         )}
                                     </Box>
 
-                                    {/* Spacer untuk push price ke bottom */}
+                                    {/* Spacer */}
                                     <Box sx={{ flexGrow: 1, width: '100%' }} />
 
-                                    {/* Price section - Fixed at bottom with fixed width */}
+                                    {/* Price section */}
                                     <Box
                                         sx={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
-                                            height: 40, // Fixed height
-                                            width: '100%', // Fixed width
+                                            height: 40,
+                                            width: '100%',
                                             flexShrink: 0
                                         }}
                                     >
@@ -680,13 +685,12 @@ export default function MenuPage() {
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
                                                 whiteSpace: 'nowrap',
-                                                maxWidth: '60%' // Prevent price from taking too much space
+                                                maxWidth: '60%'
                                             }}
                                         >
                                             IDR {item.price.toLocaleString()}
                                         </Typography>
 
-                                        {/* Status indicator */}
                                         <Chip
                                             label="Available"
                                             size="small"
@@ -696,7 +700,7 @@ export default function MenuPage() {
                                                 height: 24,
                                                 fontSize: '0.7rem',
                                                 flexShrink: 0,
-                                                maxWidth: '35%' // Prevent chip from taking too much space
+                                                maxWidth: '35%'
                                             }}
                                         />
                                     </Box>
@@ -747,7 +751,7 @@ export default function MenuPage() {
                 </Box>
             )}
 
-            {/* ENHANCED FORM DIALOG - SAME STYLE AS PROMOTIONS */}
+            {/* ENHANCED FORM DIALOG */}
             <Dialog
                 open={openFormDialog}
                 onClose={() => setOpenFormDialog(false)}
@@ -1047,16 +1051,15 @@ export default function MenuPage() {
                                                 bgcolor: 'white',
                                                 border: '1px solid #e0e0e0'
                                             }}>
-                                                <img
+                                                <Image
                                                     src={formData.image}
                                                     alt="Preview"
+                                                    width={200}
+                                                    height={200}
                                                     style={{
                                                         maxWidth: '100%',
                                                         maxHeight: '100%',
                                                         objectFit: 'contain'
-                                                    }}
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).style.display = 'none';
                                                     }}
                                                 />
                                             </Box>
@@ -1274,7 +1277,7 @@ export default function MenuPage() {
                 <DialogTitle>Confirm Delete</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to delete "{selectedItem ? getLocalizedName(selectedItem) : ''}"? This action cannot be undone.
+                        Are you sure you want to delete &quot;{selectedItem ? getLocalizedName(selectedItem) : ''}&quot;? This action cannot be undone.
                     </Typography>
                 </DialogContent>
                 <DialogActions>
